@@ -1,26 +1,9 @@
-# def create_database(database_name: str, params: dict) -> None:
 import psycopg2
 from typing import Any
-from config import config
-
-
-def get_list_id_employers(data):
-    id_emp = None
-    for i in range(len(data)):
-        id_emp = data[i]['id']
-        # print(id_emp)
-        # return id_emp
-        return id_emp
-    # for i in range(len(data)):
-    #     id = data[i]['id']
-    #     return id
-
-
-
 
 
 def create_database(database_name: str, params: dict) -> None:
-    """Создание базы данных и таблиц для сохранения данных о каналах и видео."""
+    """Создание базы данных и таблиц для сохранения данных о работодателях и вакансиях."""
     conn = psycopg2.connect(dbname='postgres', **params)
     conn.autocommit = True
     cur = conn.cursor()
@@ -79,12 +62,13 @@ def save_employers_to_database(data: list[dict[str, Any]], database_name: str, p
     conn.commit()
     conn.close()
 
+
 def save_vacancies_to_database(data: list[dict[str, Any]], database_name: str, params: dict):
     """Сохранение данных о вакансиях в базу данных."""
     conn = psycopg2.connect(dbname=database_name, **params)
     with conn.cursor() as cur:
         for vacancy in data:
-            print(vacancy)
+            # print(vacancy)
             cur.execute(
                 """
                 INSERT INTO vacancies (id_vacancy, name_vacancy, id_employer, name_employer, salary, city, experience, requirement, url)

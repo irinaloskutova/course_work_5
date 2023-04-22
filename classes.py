@@ -16,15 +16,17 @@ class Employers:
         """Возвращает работодателей с сайта HeadHunter"""
         try:
             employers = []
-            params = {
-                    "text": f"{self.data}",
-                    "area": 113,
-                    "only_with_vacancies": True,
-                    # "page": page,
-                    # "per_page": 20,
-                }
-            employers.extend(requests.get('https://api.hh.ru/employers', params=params).json()["items"])
-            return employers
+            while True:
+                for page in range(0, 100):
+                    params = {
+                            "text": f"{self.data}",
+                            "area": 113,
+                            "only_with_vacancies": True,
+                            "pages": 1,
+                            "per_page": 50,
+                        }
+                    employers.extend(requests.get('https://api.hh.ru/employers', params=params).json()["items"])
+                    return employers
         except requests.exceptions.ConnectTimeout:
             print('Oops. Connection timeout occured!')
         except requests.exceptions.ReadTimeout:
@@ -36,44 +38,27 @@ class Employers:
             print('Response is: {content}'.format(content=err.response.content))
 
 
-    # @property
-    # def put_employers_in_list(self):
-    #     with open('employers.json', 'r') as f:
-    #         get_employers = json.load(f)
-    #         list_employers = []
-    #         for i in range(len(get_employers)):
-    #             # if self.get_vacancy[i]['snippet']['requirement'] is not None:
-    #             #     s = self.get_vacancy[i]['snippet']['requirement']
-    #             #     for x, y in ("<highlighttext>", ""), ("</highlighttext>", ""):
-    #             #         s = s.replace(x, y)
-    #             info = {
-    #                 "id_employer": get_employers[i]['id'],
-    #                 'name_employer': get_employers[i]['name'],
-    #                 "open_vacancies": get_employers[i]['open_vacancies'],
-    #                 'url_employer': get_employers[i]['alternate_url'],
-    #             }
-    #             list_employers.append(info)
-    #         return list_employers
-    #
-    # def to_json(self):
-    #     with open('hhemp.json', 'w', encoding='UTF-8') as f:
-    #         json.dump(self.put_employers_in_list, f, indent=2)
-
-
 class Vacancy:
+    """Собирает с сайта HeadHunter вакансии по номеру айди работодателя"""
     def __init__(self, id_employer):
         self.id_employer = id_employer
         self.get_vacancy = self.get_vacancy()
         self.put_vacancies_in_list = self.put_vacancies_in_list()
-    # @property
+
     def get_vacancy(self):
+        """Возвращает вакансии по номеру айди работодателя"""
         try:
             vacancy = []
-            # for page in range(1, 11):
-            params = {"employer_id": f"{self.id_employer}",}
-            vacancy.extend(requests.get('https://api.hh.ru/vacancies?', params=params).json()['items'])
-            time.sleep(0.22)
-            return vacancy
+            while True:
+                for page in range(0, 100):
+                    params = {
+                        "employer_id": f"{self.id_employer}",
+                        "page": page,
+                        'per_page': 50,
+                        }
+                    vacancy.extend(requests.get('https://api.hh.ru/vacancies?', params=params).json()['items'])
+                    time.sleep(0.22)
+                    return vacancy
         except requests.exceptions.ConnectTimeout:
             print('Oops. Connection timeout occured!')
         except requests.exceptions.ReadTimeout:
@@ -86,8 +71,10 @@ class Vacancy:
 
 
     def put_vacancies_in_list(self):
+        """Записывает найденные вакансии с нужными ключами в список словарей"""
         list_vacancy = []
         for i in range(len(self.get_vacancy)):
+            print(len(self.get_vacancy))
             info = {
                 'id_vacancy': self.get_vacancy[i].get('id'),
                 'name_vacancy': self.get_vacancy[i].get('name'),
@@ -102,9 +89,3 @@ class Vacancy:
             }
             list_vacancy.append(info)
         return list_vacancy
-
-    def to_json(self):
-        with open('vacancy.json', 'w') as f:
-            json.dump(self.put_vacancies_in_list, f, indent=2)
-
-
