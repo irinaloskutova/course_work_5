@@ -1,7 +1,4 @@
-import json
 import time
-from abc import ABC, abstractmethod
-import os
 import requests
 
 
@@ -43,7 +40,6 @@ class Vacancy:
     def __init__(self, id_employer):
         self.id_employer = id_employer
         self.get_vacancy = self.get_vacancy()
-        self.put_vacancies_in_list = self.put_vacancies_in_list()
 
     def get_vacancy(self):
         """Возвращает вакансии по номеру айди работодателя"""
@@ -69,20 +65,23 @@ class Vacancy:
             print('Oops. HTTP Error occured')
             print('Response is: {content}'.format(content=err.response.content))
 
-
     def put_vacancies_in_list(self):
         """Записывает найденные вакансии с нужными ключами в список словарей"""
         list_vacancy = []
         for i in range(len(self.get_vacancy)):
-            print(len(self.get_vacancy))
+            salary_from = 0 if (self.get_vacancy[i]['salary'] == None or self.get_vacancy[i]['salary']['from'] == 0 or
+                        self.get_vacancy[i]['salary']['from'] == None) else self.get_vacancy[i]['salary']['from']
+            salary_to = 0 if (self.get_vacancy[i]['salary'] == None or self.get_vacancy[i]['salary']['to'] == 0 or
+                               self.get_vacancy[i]['salary']['to'] == None) else self.get_vacancy[i]['salary']['to']
             info = {
                 'id_vacancy': self.get_vacancy[i].get('id'),
                 'name_vacancy': self.get_vacancy[i].get('name'),
                 'id_employer': 0 if self.get_vacancy[i]['employer']['id'] == None else self.get_vacancy[i]['employer']['id'],
                 'name_employer': "Не указано" if self.get_vacancy[i]['employer']['name'] == None else self.get_vacancy[i]['employer']['name'],
                 'city': "Не указано" if self.get_vacancy[i]['area']['name'] == None else self.get_vacancy[i]['area']['name'],
-                'salary': "Не указано" if (self.get_vacancy[i]['salary'] == None or self.get_vacancy[i]['salary']['from'] == 0 or
-                                               self.get_vacancy[i]['salary']['from'] == None) else self.get_vacancy[i]['salary']['from'],
+                'salary_from': salary_from,
+                'salary_to': salary_to,
+                'salary_avg': (salary_from[0] + salary_to[0])/2,
                 'experience': self.get_vacancy[i]['experience'].get('name'),
                 'url': self.get_vacancy[i].get('alternate_url'),
                 "requirement": "Не указано" if self.get_vacancy[i]['snippet']['requirement'] else self.get_vacancy[i]['snippet']['requirement'],
