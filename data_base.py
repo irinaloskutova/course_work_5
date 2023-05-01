@@ -1,5 +1,3 @@
-import pprint
-
 import psycopg2
 from typing import Any
 
@@ -16,7 +14,7 @@ class DBCreate:
         conn.autocommit = True
         cur = conn.cursor()
 
-        cur.execute(f"DROP DATABASE {self.database_name}")
+        cur.execute(f"DROP DATABASE IF EXISTS {self.database_name}")
         cur.execute(f"CREATE DATABASE {self.database_name}")
 
         cur.close()
@@ -65,6 +63,7 @@ class DBCreate:
                     """
                     INSERT INTO employers (id_employer, name_employer, open_vacancies, url_employer)
                     VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (id_employer) DO NOTHING
                     RETURNING id_employer
                     """,
                     (employer['id'], employer['name'], employer['open_vacancies'], employer['alternate_url']))
@@ -118,13 +117,9 @@ class DBManager(DBCreate):
     def get_avg_salary(self):
         """ Получает среднюю зарплату по вакансиям."""
         conn = psycopg2.connect(dbname=self.database_name, **self.params)
-        list_avg_vacancies = []
         with conn.cursor() as cur:
             cur.execute("SELECT ROUND(AVG(salary_avg)) as avg_salary FROM vacancies")
-            rows = cur.fetchall()
-            for row in rows:
-                list_avg_vacancies.append(row)
-            return list_avg_vacancies
+            return cur.fetchall()
 
     def get_vacancies_with_higher_salary(self):
         """Получает список всех вакансий, у которых зарплата выше средней по всем вакансиям."""
